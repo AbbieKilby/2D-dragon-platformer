@@ -1,4 +1,5 @@
 using UnityEngine;
+using static UnityEngine.RuleTile.TilingRuleOutput;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -11,24 +12,59 @@ public class PlayerMovement : MonoBehaviour
     private BoxCollider2D boxCollider;
     private float wallJumpCooldown;
     private float horizontalInput;
+    private SpriteRenderer sprite;
+
+    public bool facingRight = true;
+
+
 
     private void Awake()
     {
         //Grab references 
         body = GetComponent<Rigidbody2D>();
-        anim = GetComponent<Animator>();
+        anim = GetComponentInChildren<Animator>();
         boxCollider = GetComponent<BoxCollider2D>();
+        sprite = GetComponentInChildren<SpriteRenderer>();
     }
 
     private void Update()
     {
         horizontalInput = Input.GetAxis("Horizontal");
 
+
         //Flip player depending one movement direction
-        if(horizontalInput > 0.01f)
-            transform.localScale = Vector3.one;
-        else if (horizontalInput > -0.01f)
-            transform.localScale = new Vector3(-1,1,1);
+        if (horizontalInput > 0.01f)
+        {
+            // transform.localScale = Vector3.one;
+            //sprite.flipX = true;
+            //transform.localScale = new Vector3(1, 1, 1);
+            // Move right
+            body.linearVelocity = new Vector2(speed, body.linearVelocity.y);
+            if (!facingRight)
+            {
+                Flip();
+            }
+
+        }
+        else if (horizontalInput < -0.01f)
+        {
+            //sprite.flipX = false;
+            //transform.localScale = new Vector3(-1, 1, 1);
+            // Move left
+            body.linearVelocity = new Vector2(-speed, body.linearVelocity.y);
+            if (facingRight)
+            {
+                Flip();
+            }
+        }
+        else
+        {
+            // Idle (no movement)
+            body.linearVelocity = new Vector2(0, body.linearVelocity.y);
+            // Optional: Add idle animations here if any
+        }
+
+
 
         //Set animator parameters
         anim.SetBool("Run", horizontalInput != 0);
@@ -57,6 +93,14 @@ public class PlayerMovement : MonoBehaviour
             wallJumpCooldown += Time.deltaTime;
     }
 
+    void Flip()
+    {
+        facingRight = !facingRight;
+        Vector3 theScale = transform.localScale;
+        theScale.x *= -1;
+        transform.localScale = theScale;
+    }
+
     private void Jump()
     {
         if (isGrounded())
@@ -64,9 +108,9 @@ public class PlayerMovement : MonoBehaviour
             body.linearVelocity = new Vector2(body.linearVelocity.x, jumpPower);
             anim.SetTrigger("jump");
         }
-        else if(onWall() && !isGrounded())
+        else if (onWall() && !isGrounded())
         {
-            if(horizontalInput == 0)
+            if (horizontalInput == 0)
             {
                 body.linearVelocity = new Vector2(-Mathf.Sign(transform.localScale.x) * 10, 0);
                 transform.localScale = new Vector3(-Mathf.Sign(transform.localScale.x), transform.localScale.y, transform.localScale.z);
