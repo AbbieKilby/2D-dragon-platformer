@@ -16,7 +16,7 @@ public class PlayerMovement : MonoBehaviour
 
     public bool facingRight = true;
 
-
+    public CoinManager cm;
 
     private void Awake()
     {
@@ -138,5 +138,14 @@ public class PlayerMovement : MonoBehaviour
     public bool canAttack()
     {
         return horizontalInput == 0 && isGrounded() && !onWall();
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if(other.gameObject.CompareTag("Coin"))
+        {
+            Destroy(other.gameObject);
+            cm.coinCount++;
+        }
     }
 }
